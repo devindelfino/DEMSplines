@@ -6,40 +6,63 @@
 #include <math.h>
 using namespace std;
 
+float yRot = 0.0;
+float xRot = 0.0;
+float xEye = 0.0;
+float yEye = 0.0;
+float zEye = 5.0;
 void menuOptions(int);
 void printTitle();
 
-
 void display()
 {
-	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   //
+   glLoadIdentity ();
+   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+   glScalef (1.0, 1.0, 1.0);
 
-	glScalef (1.0, 1.0, 1.0);
-	glTranslatef (5.0, 0-5.0, 0.0);
-	glColor3f(0.0,0.0,1.0);
-	glutWireCube(0.8);
+   /* draw a red cube in center of volume */
+   glColor3f (0.2, 0.2, 1.0);
+   glRotatef(yRot, 0.0, 1.0, 0.0);
+   glRotatef(xRot, 1.0, 0.0, 0.0);
+   glutWireTeapot (0.8);
 
-	glutSwapBuffers();
+   glFlush();
 }
 
 void init()
 {
-	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-	glClearColor(0.8, 0.8, 0.8, 0.0);
-	glEnable (GL_DEPTH_TEST);
-	glOrtho(0.0, 850.0, 0.0, 850.0, -1.0, 1.0);
+	// glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+	// glClearColor(0.8, 0.8, 0.8, 0.0);
+	// glShadeModel (GL_FLAT);
+	// glEnable (GL_DEPTH_TEST);
+ //    glFrustum (-1, 1, -1, 1, 1.5, 20.0);
+
+	// //glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
 	printTitle();
+    // glLoadIdentity();
+	glClearColor (0.8, 0.8, 0.8, 0.0);
+    glShadeModel (GL_FLAT);
+    glEnable (GL_DEPTH_TEST);
+    glLoadIdentity ();
 }
 
 void resizeWindow(int w, int h)
 {
-   glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-   glMatrixMode(GL_PROJECTION);
-   glFrustum (-1, 1, -1, 1, 1.5, 20.0);
-   // glOrtho(0.0, 850.0, 0.0, 850.0, -1.0, 1.0);
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity();
+//    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+//    glMatrixMode(GL_PROJECTION);
+//    glFrustum (-1, 1, -1, 1, 1.5, 20.0);
+//    //glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+   glViewport (0, 0, (GLsizei)w, (GLsizei) h);
+   /* set up matrices for projection coordinate system */
+   glMatrixMode (GL_PROJECTION);
+   glFrustum (-1, 1, -1, 1, 1.5, 30.0);
+
+   /* reset matrices to user's coordinate system */
+   glMatrixMode (GL_MODELVIEW);
 }
 
 void initMenu()
@@ -77,26 +100,35 @@ void menuOptions(int val)
 	}
 }
 
-// void mouseClick(int button, int state, int x, int y)
-// {
-// 	//
-// }
-
 void keyboardInput(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
 		case '1': 	
-			 	  break;
+		//add in limit to zoom in
+			 	  zEye += 0.5;
+   				  glutPostRedisplay();
+				  break;
 		case '7': 
+		//add in limit to zoom out
+				  zEye -= 0.5;
+   				  glutPostRedisplay();
 				  break;
 		case '8': 
+				  xRot -= 2.0;
+   				  glutPostRedisplay();
 				  break;
 		case '2': 
+				  xRot += 2.0;
+   				  glutPostRedisplay();
 				  break;
 		case '4': 
+   				  yRot += 2.0;
+   				  glutPostRedisplay();
 				  break;
 		case '6': 
+				  yRot -= 2.0;
+   				  glutPostRedisplay();
 				  break;
 	}
 }
