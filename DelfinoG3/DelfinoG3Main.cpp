@@ -1,11 +1,12 @@
 // DelfinoG2Main.cpp
 
 #include <GL/glut.h>
-
+#include "DEM.h"
 #include <iostream>
 #include <math.h>
 using namespace std;
 
+DEM d("test.grd");
 float yRot = 0.0;
 float xRot = 0.0;
 float xEye = 0.0;
@@ -27,7 +28,14 @@ void display()
    glRotatef(yRot, 0.0, 1.0, 0.0);
    glRotatef(xRot, 1.0, 0.0, 0.0);
    glutWireTeapot (0.8);
-
+   
+   glScalef (0.5, 0.5, 0.5);
+   glTranslatef(0-(d.getRows()/2), 0, 0-(d.getCols()/2));
+   glBegin(GL_LINE_STRIP);
+     glVertex3f(0, d.getData(0,0), 0);
+     glVertex3f(0, d.getData(0,1), 1);
+     glVertex3f(0, d.getData(0,2), 2);
+   glEnd();
    glFlush();
 }
 
@@ -46,20 +54,15 @@ void init()
     glShadeModel (GL_FLAT);
     glEnable (GL_DEPTH_TEST);
     glLoadIdentity ();
+    d.print();
 }
 
 void resizeWindow(int w, int h)
 {
-//    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-//    glMatrixMode(GL_PROJECTION);
-//    glFrustum (-1, 1, -1, 1, 1.5, 20.0);
-//    //glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
    glViewport (0, 0, (GLsizei)w, (GLsizei) h);
    /* set up matrices for projection coordinate system */
    glMatrixMode (GL_PROJECTION);
-   glFrustum (-1, 1, -1, 1, 1.5, 30.0);
+   glFrustum (-1, 1, -1, 1, 1.6, 30.0);
 
    /* reset matrices to user's coordinate system */
    glMatrixMode (GL_MODELVIEW);
@@ -79,9 +82,9 @@ void initMenu()
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-void menuOptions(int val)
+void menuOptions(int choice)
 {
-	switch(val)
+	switch(choice)
 	{
 		case 0: 
 				break;
@@ -142,12 +145,12 @@ void printTitle()
 	cout << " * ========================================================================== *\n" << endl;
 	cout << " Menu Options:\n"<< endl;
 	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0)" << endl;
-	cout << " 'Display Linear Spline'         - Displays a quadratic piecewise spline (C_1)" << endl;
+	cout << " 'Display Quadratic Spline'         - Displays a quadratic piecewise spline (C_1)" << endl;
 	cout << " 'Turn Splines Off'              - Clears the screen of all splines" << endl;
 	cout << " 'Increase Grid Elevations' (x2) - " << endl;
 	cout << " 'Decrease Grid Elevations' (x2) - " << endl;
 	cout << " 'Reset to Original Grid'        - Turns splines off and resets grid elevations" << endl;
-	cout << " 'Quit'                          - Exits program" << endl;
+	cout << " 'Quit'                          - Exits program\n\n" << endl;
 
 	cout << " Keyboard Instructions:\n"<< endl;
 	cout << " '1' - Zoom in" << endl;
