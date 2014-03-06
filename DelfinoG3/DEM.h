@@ -38,8 +38,8 @@ public:
 	short getCellSize();
 	short getCols();
 	short getRows();
-	void displayKnots(float, float, float, float, float, float, float);
-	void displaySplineC0(float, float, float, float, float, float, float);
+	void displayKnots(float, float, float, float, float, float, float, float, float);
+	void displaySplineC0(float, float, float, float, float, float, float, float, float);
 	//void displaySplineC1();
 	//void displaySplines();
 	void getLimits(float&,float&);

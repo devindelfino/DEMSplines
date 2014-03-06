@@ -2,7 +2,7 @@
 
 #include "DEM.h"
 
-DEM d("test.grd");
+DEM d("mt257.dem.grd");
 short CELL = d.getCellSize();
 float frustX = d.getCols()*CELL;
 float frustZ = d.getRows()*CELL;
@@ -12,7 +12,7 @@ float frustYmid;
 float frustPROJ;
 //float xEye = frustX/2.0;
 float xEye = 0.0;
-float yEye = 0.0;
+float yEye = frustYmid;
 //float zEye = frustZ/2.0;
 float ratio;
 float zEye = 0-frustZ/CELL/2*CELL;
@@ -25,7 +25,7 @@ float yToORIG = -1*(frustYmid);
 float zToORIG = frustZ;
 float yRot = 0.0;
 float xRot = 0.0;
-
+float zoom = 1.0;
 bool displayKnots = true;
 bool displayC0 = false;
 bool displayC1 = false;
@@ -39,13 +39,13 @@ void display()
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    //
    glLoadIdentity ();
-   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+   gluLookAt (xEye, yEye*zoom, zEye*zoom, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
    glColor3f (1, 0.871, 0);
   
    if(displayC0)
    {
-      d.displaySplineC0(xRot, yRot, frustX, frustZ, yToORIG, zToORIG, elFactor);
+      d.displaySplineC0(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
    else if(displayC1)
    {
@@ -53,7 +53,7 @@ void display()
    }
    else
    {
-      d.displayKnots(xRot, yRot, frustX, frustZ, yToORIG, zToORIG, elFactor);
+      d.displayKnots(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
 
    glutSwapBuffers();
@@ -76,7 +76,7 @@ void init()
     frustYmid = (frustYupper+frustYlower)/2.0;
     glEnable (GL_DEPTH_TEST);
     glLoadIdentity ();
-    d.print();
+    //d.print();
 }
 
 void resizeWindow(int w, int h)
@@ -97,7 +97,7 @@ void resizeWindow(int w, int h)
    ratio = (w*1.0)/(h*1.0);
 
    // ratio of width/height
-   gluPerspective(85.0, ratio, 0.1f, frustPROJ*2);
+   gluPerspective(85.0/zoom, ratio, 0.1f, frustPROJ*2);
    //glFrustum(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
    
 
@@ -175,7 +175,8 @@ void keyboardInput(unsigned char key, int x, int y)
 	{
 		case '1': 	
 		//add in limit to zoom in
-			 	  zEye -= 10;
+			 	  //zEye -= 10;
+          zoom += 1.0;
               //frustPROJ += 10.0;
 				 
               cout << "zoom in"<<endl;
@@ -190,27 +191,23 @@ void keyboardInput(unsigned char key, int x, int y)
    				  glutPostRedisplay();
 				  break;
 		case '8': 
-				  rotateHORZ = false;
-				  rotateVERT = true;
+
+
 				  xRot -= 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '2': 
-				  rotateHORZ = false;
-				  rotateVERT = true;
+
 				  xRot += 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '4': 
-				  rotateHORZ = true;
-				  rotateVERT = false;
-   				  yRot += 2.0;
+   				  yRot -= 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '6': 
-				  rotateHORZ = true;
-				  rotateVERT = false;
-				  yRot -= 2.0;
+
+				  yRot += 2.0;
    				  glutPostRedisplay();
 				  break;
 	}

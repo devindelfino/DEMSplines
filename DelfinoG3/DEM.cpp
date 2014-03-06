@@ -163,24 +163,25 @@ void DEM::getLimits(float& min, float& max)
 	}
 }
 
-void DEM::displayKnots(float xRot, float yRot, float frustX, float frustZ, float yToORIG, float zToORIG, float elFactor)
+void DEM::displayKnots(float xRot, float yRot, float frustX, float frustZ, float frustYlower, float frustYupper, float yToORIG, float zToORIG, float elFactor)
 {
+   float frustY = (frustYupper-frustYlower)/2.0;
    long i, j = 0;
   
 	while(j < cols)
    {
  		glLoadIdentity();
-   		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   		glTranslatef(0.0, -1*yToORIG*elFactor, -1*zToORIG);
    		glRotatef(xRot, 1.0, 0.0, 0.0);
    		glRotatef(yRot, 0.0, 1.0, 0.0);
    		glTranslatef(0.0, yToORIG, zToORIG);
-
+   		glTranslatef(0.0, frustY*elFactor*-1, 0.0);
    		i = 0;
    		glBegin(GL_POINTS);
    			
    		   while(i < rows)
    		   {
-   			   glVertex3f((-1*(cols*cellsize/2))+j*cellsize, elFactor*getData(j,i), (-1*(rows*cellsize/2))-i*cellsize);
+   			   glVertex3f((-1*(cols*cellsize/2))+j*cellsize, -1*(frustY-frustYlower*elFactor)+(elFactor*getData(j,i)), (-1*(rows*cellsize/2))-i*cellsize);
    			   //glFlush();
    			   i++;
    		   }
@@ -190,7 +191,7 @@ void DEM::displayKnots(float xRot, float yRot, float frustX, float frustZ, float
    }
 }
 
-void DEM::displaySplineC0(float xRot, float yRot, float frustX, float frustZ, float yToORIG, float zToORIG, float elFactor)
+void DEM::displaySplineC0(float xRot, float yRot, float frustX, float frustZ, float frustYlower, float frustYupper, float yToORIG, float zToORIG, float elFactor)
 {
    long i, j = 0;
   
