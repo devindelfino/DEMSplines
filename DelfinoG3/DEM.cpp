@@ -139,3 +139,114 @@ void DEM::print()
 		cout << endl;
 	}
 }
+
+void DEM::getLimits(float& min, float& max)
+{
+	min = data[0][0];
+	max = data[0][0];
+
+	long i,j;
+	for(i=rows-1; i>=0; i--)
+	{
+		for(j=0; j<cols; j++)
+		{
+			if(data[j][i] < min)
+			{
+				min = data[j][i];
+			}
+			else if(data[j][i] > max)
+			{
+				max = data[j][i];
+			}
+		}
+		
+	}
+}
+
+void DEM::displayKnots(float xRot, float yRot, float frustX, float frustZ, float yToORIG, float zToORIG, float elFactor)
+{
+   long i, j = 0;
+  
+	while(j < cols)
+   {
+ 		glLoadIdentity();
+   		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   		glRotatef(xRot, 1.0, 0.0, 0.0);
+   		glRotatef(yRot, 0.0, 1.0, 0.0);
+   		glTranslatef(0.0, yToORIG, zToORIG);
+
+   		i = 0;
+   		glBegin(GL_POINTS);
+   			
+   		   while(i < rows)
+   		   {
+   			   glVertex3f((-1*(cols*cellsize/2))+j*cellsize, elFactor*getData(j,i), (-1*(rows*cellsize/2))-i*cellsize);
+   			   //glFlush();
+   			   i++;
+   		   }
+   		glEnd();
+   		glFlush();
+   		j++;
+   }
+}
+
+void DEM::displaySplineC0(float xRot, float yRot, float frustX, float frustZ, float yToORIG, float zToORIG, float elFactor)
+{
+   long i, j = 0;
+  
+	while(j < cols)
+   {
+ 		glLoadIdentity();
+   		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   		glRotatef(xRot, 1.0, 0.0, 0.0);
+   		glRotatef(yRot, 0.0, 1.0, 0.0);
+   		glTranslatef(0.0, yToORIG, zToORIG);
+
+   		i = 0;
+   		glBegin(GL_LINE_STRIP);
+   			
+   		   while(i < rows)
+   		   {
+   			   glVertex3f((-1*(cols*cellsize/2.0))+j*cellsize, elFactor*getData(j,i), (-1*(rows*cellsize/2.0))-i*cellsize);
+   			   //glFlush();
+   			   i++;
+   		   }
+   		glEnd();
+   		glFlush();
+   		j++;
+   }
+
+   j = 0, i = 0;
+   while(i < cols)
+   {
+ 		glLoadIdentity();
+   		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   		glRotatef(xRot, 1.0, 0.0, 0.0);
+   		glRotatef(yRot, 0.0, 1.0, 0.0);
+   		glTranslatef(0.0, yToORIG, zToORIG);
+
+   		j = 0;
+   		glBegin(GL_LINE_STRIP);
+   			
+   		   while(j < rows)
+   		   {
+   			   glVertex3f((-1*(cols*cellsize/2))+j*cellsize, elFactor*getData(j,i), (-1*(rows*cellsize/2))-i*cellsize);
+   			   //glFlush();
+   			   j++;
+   		   }
+   		glEnd();
+   		glFlush();
+   		i++;
+   }
+}
+// hold old code for display displayKnots// glLoadIdentity();
+   			// glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   			// glRotatef(xRot, 1.0, 0.0, 0.0);
+   			// glRotatef(yRot, 0.0, 1.0, 0.0);
+   			// glTranslatef(0.0, yToORIG, zToORIG);
+
+            
+      //       glTranslatef(j*CELL-(frustX/2.0), d.getData(j,i), -1*i*CELL-frustZ/2.0);
+            
+      //       QUAD = gluNewQuadric();
+   			// gluSphere(QUAD, 0.25, 50,50);

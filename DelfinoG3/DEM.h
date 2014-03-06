@@ -6,9 +6,15 @@
 #ifndef Dem
 #define Dem
 
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else
+#  include <GL/glut.h>
+#endif
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 using namespace std;
 
 class DEM { // (Digital Elevation Model)
@@ -25,16 +31,19 @@ public:
 
 	//destructors
 	~DEM();						// destroys the dynamically allocated 'data' datamember
+
+	//methods
+	long getSize();			// returns the size of the DEM
 	void print();
 	short getCellSize();
-	//methods
-	 long getSize();			// returns the size of the DEM
-	 short getCols();
-	 short getRows();
-	// float getMax();				// returns the maximum elevation of the DEM
-	// float getMin();				// returns the minimum elevation of the DEM
-	// float getAverage();			// returns the mean elevation of the DEM
-	// float getMedian();			// returns the median elevation of the DEM
+	short getCols();
+	short getRows();
+	void displayKnots(float, float, float, float, float, float, float);
+	void displaySplineC0(float, float, float, float, float, float, float);
+	//void displaySplineC1();
+	//void displaySplines();
+	void getLimits(float&,float&);
+
 	float getData(short,short);		// returns the elevation point at a particular index of the array
 };
 

@@ -1,17 +1,36 @@
 // DelfinoG2Main.cpp
 
-#include <GL/glut.h>
 #include "DEM.h"
-#include <iostream>
-#include <math.h>
-using namespace std;
 
-DEM d("test.grd");
-float yRot = 0.0;
-float xRot = 0.0;
+DEM d("mt257.dem.grd");
+short CELL = d.getCellSize();
+float frustX = d.getCols()*CELL;
+float frustZ = d.getRows()*CELL;
+float frustYlower = 0.0;
+float frustYupper = 0.0;
+float frustYmid;
+float frustPROJ;
+//float xEye = frustX/2.0;
 float xEye = 0.0;
 float yEye = 0.0;
-float zEye = 5.0;
+//float zEye = frustZ/2.0;
+float ratio;
+float zEye = 0-frustZ/CELL/2*CELL;
+float elFactor = 1.0;
+bool rotateHORZ = false;
+bool rotateVERT = false;
+float xToORIG = 0.0;
+float yToORIG = -1*(frustYmid);
+//float zToORIG = 0.0;
+float zToORIG = frustZ;
+float yRot = 0.0;
+float xRot = 0.0;
+
+bool displayKnots = true;
+bool displayC0 = false;
+bool displayC1 = false;
+
+//prototypes
 void menuOptions(int);
 void printTitle();
 
@@ -21,37 +40,40 @@ void display()
    //
    glLoadIdentity ();
    gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-   glScalef (1.0, 1.0, 1.0);
 
-   /* draw a red cube in center of volume */
-   glColor3f (0.2, 0.2, 1.0);
-   glRotatef(yRot, 0.0, 1.0, 0.0);
-   glRotatef(xRot, 1.0, 0.0, 0.0);
-   glutWireTeapot (0.8);
-   
-   glScalef (0.5, 0.5, 0.5);
-   glTranslatef(0-(d.getRows()/2), 0, 0-(d.getCols()/2));
-   glBegin(GL_LINE_STRIP);
-     glVertex3f(0, d.getData(0,0), 0);
-     glVertex3f(0, d.getData(0,1), 1);
-     glVertex3f(0, d.getData(0,2), 2);
-   glEnd();
-   glFlush();
+   glColor3f (1, 0.871, 0);
+  
+   if(displayC0)
+   {
+      d.displaySplineC0(xRot, yRot, frustX, frustZ, yToORIG, zToORIG, elFactor);
+   }
+   else if(displayC1)
+   {
+    //
+   }
+   else
+   {
+      d.displayKnots(xRot, yRot, frustX, frustZ, yToORIG, zToORIG, elFactor);
+   }
+
+   glutSwapBuffers();
 }
 
 void init()
 {
-	// glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-	// glClearColor(0.8, 0.8, 0.8, 0.0);
-	// glShadeModel (GL_FLAT);
-	// glEnable (GL_DEPTH_TEST);
- //    glFrustum (-1, 1, -1, 1, 1.5, 20.0);
-
-	// //glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
+	
 	printTitle();
-    // glLoadIdentity();
 	glClearColor (0.8, 0.8, 0.8, 0.0);
+  glClearColor (0.0, 0.0, 0.098, 0.0);
+
     glShadeModel (GL_FLAT);
+
+    // GET LOWER/UPPER bounds for FRUSTUM Y
+    d.getLimits(frustYlower,frustYupper);
+    cout << frustYlower << endl;
+    cout << frustYupper << endl;
+    //yEye = frustYupper+CELL;
+    frustYmid = (frustYupper+frustYlower)/2.0;
     glEnable (GL_DEPTH_TEST);
     glLoadIdentity ();
     d.print();
@@ -62,8 +84,27 @@ void resizeWindow(int w, int h)
    glViewport (0, 0, (GLsizei)w, (GLsizei) h);
    /* set up matrices for projection coordinate system */
    glMatrixMode (GL_PROJECTION);
-   glFrustum (-1, 1, -1, 1, 1.6, 30.0);
+   
+   if(frustX>frustZ)
+   {
+      frustPROJ = frustX;
+   }
+   else
+   {
+      frustPROJ = frustZ;
+   		
+   }
+   ratio = (w*1.0)/(h*1.0);
 
+   // ratio of width/height
+   gluPerspective(85.0, ratio, 0.1f, frustPROJ*2);
+   //glFrustum(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
+   
+
+   //glOrtho(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
+   //glFrustum(0-(frustPROJ)-10, (frustPROJ)+10, frustYlower-10, frustYlower+frustPROJ*2+10, 20, 20+(frustPROJ));
+   // glOrtho(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
+   
    /* reset matrices to user's coordinate system */
    glMatrixMode (GL_MODELVIEW);
 }
@@ -87,18 +128,43 @@ void menuOptions(int choice)
 	switch(choice)
 	{
 		case 0: 
+        displayC0 = true;
+        displayC1 = false;
+        displayKnots = false;
+        glutPostRedisplay();
 				break;
 		case 1:
+        displayC0 = false;
+        displayC1 = true;
+        displayKnots = false;
+        glutPostRedisplay();
 				break;
 		case 2: 
+        displayC0 = false;
+        displayC1 = false;
+        displayKnots = true;
+        glutPostRedisplay();
 				break;
-		case 3: 
+		case 3:
+        elFactor = elFactor*2; 
+        glutPostRedisplay();
 				break;
-		case 4: 
+		case 4:
+        if(elFactor > 1.0)
+        {
+          elFactor = elFactor/2; 
+        }
+        glutPostRedisplay();
 				break;
 		case 5: 
-				break;
-		case 9: exit(1);
+				displayC0 = false;
+        displayC1 = false;
+        displayKnots = true;
+        elFactor = 1.0;
+        glutPostRedisplay();
+        break;
+		case 9: 
+        exit(1);
 				break;
 	}
 }
@@ -109,27 +175,41 @@ void keyboardInput(unsigned char key, int x, int y)
 	{
 		case '1': 	
 		//add in limit to zoom in
-			 	  zEye += 0.5;
-   				  glutPostRedisplay();
+			 	  zEye -= 10;
+              //frustPROJ += 10.0;
+				 
+              cout << "zoom in"<<endl;
+              
+
+   			   glutPostRedisplay();
 				  break;
 		case '7': 
 		//add in limit to zoom out
-				  zEye -= 0.5;
+				  zEye += 0.5;
+              cout << "zoom out"<<endl;
    				  glutPostRedisplay();
 				  break;
 		case '8': 
+				  rotateHORZ = false;
+				  rotateVERT = true;
 				  xRot -= 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '2': 
+				  rotateHORZ = false;
+				  rotateVERT = true;
 				  xRot += 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '4': 
+				  rotateHORZ = true;
+				  rotateVERT = false;
    				  yRot += 2.0;
    				  glutPostRedisplay();
 				  break;
 		case '6': 
+				  rotateHORZ = true;
+				  rotateVERT = false;
 				  yRot -= 2.0;
    				  glutPostRedisplay();
 				  break;
@@ -161,11 +241,12 @@ void printTitle()
 	cout << " '6' - Rotate grid about the y-axis (Horizontally, Clockwise)\n\n" << endl;
 }
 
+
 int main(int argc, char **argv)
 // main function
 {  
    glutInit(&argc, argv);
-   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH); 
+   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
    glutInitWindowSize(800,800);
    glutInitWindowPosition(100, 100); 
    glutCreateWindow("Splines using DEM");
