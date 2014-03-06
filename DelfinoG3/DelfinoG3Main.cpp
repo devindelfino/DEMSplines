@@ -2,7 +2,7 @@
 
 #include "DEM.h"
 
-DEM d("mt257.dem.grd");
+DEM d("test.grd");
 short CELL = d.getCellSize();
 float frustX = d.getCols()*CELL;
 float frustZ = d.getRows()*CELL;
@@ -225,10 +225,10 @@ void printTitle()
 	cout << " * ========================================================================== *\n" << endl;
 	cout << " Menu Options:\n"<< endl;
 	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0)" << endl;
-	cout << " 'Display Quadratic Spline'         - Displays a quadratic piecewise spline (C_1)" << endl;
+	cout << " 'Display Quadratic Spline'      - Displays a quadratic piecewise spline (C_1)" << endl;
 	cout << " 'Turn Splines Off'              - Clears the screen of all splines" << endl;
-	cout << " 'Increase Grid Elevations' (x2) - " << endl;
-	cout << " 'Decrease Grid Elevations' (x2) - " << endl;
+	cout << " 'Increase Grid Elevations' (x2) - Increases Grid Elevation Points by a factor of 2" << endl;
+	cout << " 'Decrease Grid Elevations' (x2) - Decreases Grid Elevation Points by a factor of 2" << endl;
 	cout << " 'Reset to Original Grid'        - Turns splines off and resets grid elevations" << endl;
 	cout << " 'Quit'                          - Exits program\n\n" << endl;
 
