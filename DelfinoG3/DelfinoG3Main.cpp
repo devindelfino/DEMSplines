@@ -2,27 +2,26 @@
 
 #include "DEM.h"
 
-DEM d("mt257.dem.grd");
-short CELL = d.getCellSize();
-float frustX = d.getCols()*CELL;
-float frustZ = d.getRows()*CELL;
+DEM d;
+string filename = "mt257.dem.grd";
+short CELL;
+float frustX;
+float frustZ;
 float frustYlower = 0.0;
 float frustYupper = 0.0;
 float frustYmid;
 float frustPROJ;
 //float xEye = frustX/2.0;
 float xEye = 0.0;
-float yEye = frustYmid;
+float yEye = 0.0;
 //float zEye = frustZ/2.0;
 float ratio;
-float zEye = 0-frustZ/CELL/2*CELL;
+float zEye;
 float elFactor = 1.0;
-bool rotateHORZ = false;
-bool rotateVERT = false;
 float xToORIG = 0.0;
-float yToORIG = -1*(frustYmid);
+float yToORIG;
 //float zToORIG = 0.0;
-float zToORIG = frustZ;
+float zToORIG;;
 float yRot = 0.0;
 float xRot = 0.0;
 float zoom = 1.0;
@@ -33,37 +32,46 @@ bool displayC1 = false;
 //prototypes
 void menuOptions(int);
 void printTitle();
+void setPerspective();
 
 void display()
 {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   //
+   
+   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
    glLoadIdentity ();
-   gluLookAt (xEye, yEye*zoom, zEye*zoom, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-   glColor3f (1, 0.871, 0);
-  
    if(displayC0)
    {
+      glColor3f (1, 0.871, 0);
       d.displaySplineC0(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
    else if(displayC1)
    {
-    //
+      glColor3f(0, 0.059, 1);
+      d.displaySplineC1(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
    else
    {
+      glColor3f(0.196, 0.804, 0.6);
       d.displayKnots(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
 
    glutSwapBuffers();
 }
 
-void init()
+void init(string newGRD)
 {
-	
+  //read in .grd, assign globals
+	d.readIn(newGRD);
+  CELL = d.getCellSize();
+  frustX = d.getCols()*CELL;
+  frustZ = d.getRows()*CELL;
+  float zEye = frustZ/CELL/2*CELL;
+  yToORIG = -1*(frustYmid);
+  zToORIG = frustZ;
+
 	printTitle();
-	glClearColor (0.8, 0.8, 0.8, 0.0);
   glClearColor (0.0, 0.0, 0.098, 0.0);
 
     glShadeModel (GL_FLAT);
@@ -83,7 +91,7 @@ void resizeWindow(int w, int h)
 {
    glViewport (0, 0, (GLsizei)w, (GLsizei) h);
    /* set up matrices for projection coordinate system */
-   glMatrixMode (GL_PROJECTION);
+   //glMatrixMode (GL_PROJECTION);
    
    if(frustX>frustZ)
    {
@@ -97,18 +105,19 @@ void resizeWindow(int w, int h)
    ratio = (w*1.0)/(h*1.0);
 
    // ratio of width/height
-   gluPerspective(85.0/zoom, ratio, 0.1f, frustPROJ*2);
-   //glFrustum(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
-   
-
-   //glOrtho(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
-   //glFrustum(0-(frustPROJ)-10, (frustPROJ)+10, frustYlower-10, frustYlower+frustPROJ*2+10, 20, 20+(frustPROJ));
-   // glOrtho(0-(frustPROJ/2.0)-10, (frustPROJ/2.0)+10, frustYlower-10, frustYlower+frustPROJ+10, 20, 20+(frustPROJ));
+   setPerspective();
    
    /* reset matrices to user's coordinate system */
-   glMatrixMode (GL_MODELVIEW);
 }
 
+void setPerspective()
+{
+   glMatrixMode (GL_PROJECTION);
+
+   gluPerspective(85.0, ratio, 0.1f, frustPROJ*2);
+   glMatrixMode (GL_MODELVIEW);
+
+}
 void initMenu()
 {
 	glutCreateMenu(menuOptions);
@@ -146,7 +155,8 @@ void menuOptions(int choice)
         glutPostRedisplay();
 				break;
 		case 3:
-        elFactor = elFactor*2; 
+        elFactor = elFactor*2;
+        cout << "Current Elevation: x" << elFactor << endl;
         glutPostRedisplay();
 				break;
 		case 4:
@@ -154,6 +164,7 @@ void menuOptions(int choice)
         {
           elFactor = elFactor/2; 
         }
+        cout << "Current Elevation: x" << elFactor << endl;
         glutPostRedisplay();
 				break;
 		case 5: 
@@ -161,6 +172,7 @@ void menuOptions(int choice)
         displayC1 = false;
         displayKnots = true;
         elFactor = 1.0;
+        cout << "\n\nCurrent Elevation: x" << elFactor << endl;
         glutPostRedisplay();
         break;
 		case 9: 
@@ -175,11 +187,14 @@ void keyboardInput(unsigned char key, int x, int y)
 	{
 		case '1': 	
 		//add in limit to zoom in
-			 	  //zEye -= 10;
-          zoom += 1.0;
+			 	  //yEye = ((yEye/(-1*zEye))*(zEye-5.0));
+          yEye -= 10.0;
+          xEye -= 10.0;
+
+          zoom += 0.1;
               //frustPROJ += 10.0;
-				 
-              cout << "zoom in"<<endl;
+				      //setPerspective();
+              cout << xEye<<endl;
               
 
    			   glutPostRedisplay();
@@ -220,7 +235,13 @@ void printTitle()
 	cout << " *                 Splines using Digital Elevation Models                     *" << endl;
 	cout << " *                                                                            *" << endl;
 	cout << " * ========================================================================== *\n" << endl;
-	cout << " Menu Options:\n"<< endl;
+  cout << "                                                                             " << endl;
+  cout << " File Selection:\n                                                        " << endl;                                   
+  cout << " To choose a DEM from the list of sample files, include the filename as an argument"<< endl;
+  cout << " when running the executable.  i.e. ~$ ./DelfinoG3 mt257.dem.grd\n" << endl;
+  cout << "     - mt257.dem.grd (default) " << endl;
+  cout << "     - tucks.dem.grd\n\n" << endl;         
+  cout << " Menu Options:\n"<< endl;
 	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0)" << endl;
 	cout << " 'Display Quadratic Spline'      - Displays a quadratic piecewise spline (C_1)" << endl;
 	cout << " 'Turn Splines Off'              - Clears the screen of all splines" << endl;
@@ -245,9 +266,20 @@ int main(int argc, char **argv)
    glutInit(&argc, argv);
    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
    glutInitWindowSize(800,800);
-   glutInitWindowPosition(100, 100); 
-   glutCreateWindow("Splines using DEM");
-   init();
+   glutInitWindowPosition(100, 100);
+   if(argc>1)
+   {
+      glutCreateWindow(argv[1]);
+      init(argv[1]);
+      cout << "\n\nFile: " << argv[1] << endl;
+
+   }
+   else
+   {
+      glutCreateWindow("mt257.dem.grd");
+      init(filename);
+      cout << "\n\nFile: " << filename << endl;
+   }
    initMenu();
    glutKeyboardFunc(keyboardInput);   // the default keyboard function of the openGL program
    glutDisplayFunc(display);        // the default display function of the openGL program

@@ -24,10 +24,10 @@ private:
 	short cols;
 	short rows;
 	short cellsize;
-	void readIn(string);		// builds the datamember 'data' from a file being read in
 public:
 	//constructors
-	DEM(string);			// parameterized contructor
+	DEM();			// parameterized contructor
+	void readIn(string);		// builds the datamember 'data' from a file being read in
 
 	//destructors
 	~DEM();						// destroys the dynamically allocated 'data' datamember
@@ -40,8 +40,8 @@ public:
 	short getRows();
 	void displayKnots(float, float, float, float, float, float, float, float, float);
 	void displaySplineC0(float, float, float, float, float, float, float, float, float);
-	//void displaySplineC1();
-	//void displaySplines();
+	void displaySplineC1(float, float, float, float, float, float, float, float, float);
+	
 	void getLimits(float&,float&);
 
 	float getData(short,short);		// returns the elevation point at a particular index of the array
