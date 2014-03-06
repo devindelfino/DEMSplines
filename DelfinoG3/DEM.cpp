@@ -48,6 +48,11 @@ void DEM::readIn(string filename)
 	float junkF;
 	ifstream fin;
 	fin.open(filename.c_str());
+	if(!fin)
+	{
+		cout << "Warning! File not found!" << endl;
+		exit(1);
+	}
 	for(short i = 0; i<5; i++)
 	{
 		if(i == 0)
@@ -251,7 +256,7 @@ void DEM::displaySplineC0(float xRot, float yRot, float frustX, float frustZ, fl
 void DEM::displaySplineC1(float xRot, float yRot, float frustX, float frustZ, float frustYlower, float frustYupper, float yToORIG, float zToORIG, float elFactor)
 {
    float frustY = (frustYupper-frustYlower)/2.0;
-
+   elFactor = elFactor*0.5;
    long i, j = 0;
   	double interpEL, a, b, c, slope, subX;
   	short index=0;
@@ -296,8 +301,8 @@ void DEM::displaySplineC1(float xRot, float yRot, float frustX, float frustZ, fl
    			   			cout << slope << endl;
    			   			c = elFactor*getData(j, index);
    			   			b = slope;
-   			   			a = (elFactor*getData(j,index+1)*(((index+1)*cellsize-subX)*((index+1)*cellsize-subX)))-b*((index+1)*cellsize-subX)-c;
-cout << "a: " << a << endl;
+   			   			a = ((elFactor*getData(j,index+1)) - b*((index+1)*cellsize-subX) - c)/(((index+1)*cellsize-subX)*((index+1)*cellsize-subX));
+					cout << "a: " << a << endl;
    		   			cout << "b: " << b << endl;
    		   			cout << "c: " << c << endl;
    			   			//calculate slope for next piece
@@ -320,33 +325,82 @@ cout << "a: " << a << endl;
    		   }
    		glEnd();
    		glFlush();
-   		break;
+   		
    		j++;
    }
 
-   // j = 0, i = 0;
-   // while(i < cols)
-   // {
- 		// glLoadIdentity();
-   // 		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
-   // 		glRotatef(xRot, 1.0, 0.0, 0.0);
-   // 		glRotatef(yRot, 0.0, 1.0, 0.0);
-   // 		glTranslatef(0.0, yToORIG, zToORIG);
-   // 		glTranslatef(0.0, frustY*elFactor*-1, 0.0);
+  i = 0;
+  j = 0; 
+  index = 0;
+  while(i < rows)
+   {
+ 		glLoadIdentity();
+   		glTranslatef(0.0, -1*yToORIG, -1*zToORIG);
+   		glRotatef(xRot, 1.0, 0.0, 0.0);
+   		glRotatef(yRot, 0.0, 1.0, 0.0);
+   		glTranslatef(0.0, yToORIG, zToORIG);
+   		glTranslatef(0.0, frustY*elFactor*-1, 0.0);
 
-   // 		j = 0;
-   // 		glBegin(GL_LINE_STRIP);
+   		j = 0;
+   		glBegin(GL_LINE_STRIP);
    			
-   // 		   while(j < rows)
-   // 		   {
-   // 			   glVertex3f((-1*(cols*cellsize/2))+j*cellsize, -1*(frustY-frustYlower*elFactor)+(elFactor*getData(j,i)), (-1*(rows*cellsize/2))-i*cellsize);
-   // 			   //glFlush();
-   // 			   j++;
-   // 		   }
-   // 		glEnd();
-   // 		glFlush();
-   // 		i++;
-   // }
+   		   while(j < (cols-1)*cellsize+1)
+   		   {
+   		   		cout << "("<<j <<", "<<i<<")"<<endl;
+   		   		if(j==0)
+   		   		{
+   		   			index = j;
+   		   			cout << "ELEVATION: " << getData(j, i) << endl;
+
+   			   		glVertex3f((-1*(cols*cellsize/2))+j, -1*(frustY-frustYlower*elFactor)+(elFactor*getData(j,i)), (-1*(rows*cellsize/2))-i*cellsize);
+   			   		j = cellsize;
+
+   			   		//calculate slope for the first piece clearof the quadratic spline
+   			   		slope = ((elFactor*getData(index+1,i))-((elFactor*getData(index,i))))/(((index+1)*cellsize)-((index)*cellsize));
+
+   		   		}
+   		   		else if(j%cellsize==0)
+   		   		{
+   		   			index = j/cellsize;
+   		   			cout << "ELEVATION: " << getData(index, i) << endl;
+
+   		   			subX = j;
+   		   			//display point at knot
+   			   		glVertex3f((-1*(cols*cellsize/2))+j, -1*(frustY-frustYlower*elFactor)+(elFactor*getData(index, i)), (-1*(rows*cellsize/2))-i*cellsize);
+   			   		
+   			   		if(index != cols-1)
+   			   		{
+   			   			// calculate quadratic formula for next 9 interpolated points
+   			   			// calculate slope at current knot ----------------------------
+   			   			cout << slope << endl;
+   			   			c = elFactor*getData(index, i);
+   			   			b = slope;
+   			   			a = ((elFactor*getData(index+1, i)) - b*((index+1)*cellsize-subX) - c)/(((index+1)*cellsize-subX)*((index+1)*cellsize-subX));
+					cout << "a: " << a << endl;
+   		   			cout << "b: " << b << endl;
+   		   			cout << "c: " << c << endl;
+   			   			//calculate slope for next piece
+   			   			slope = 2*a*(((index+1)*cellsize)-subX) + b;
+   			   		}
+  					j++;
+   		   		}
+   		   		else
+   		   		{
+   		   			//interpolate elevation using quadratic formula
+   		   			interpEL = (a*((j-subX)*(j-subX)))+(b*(j-subX))+c;
+   		   			glVertex3f((-1*(cols*cellsize/2))+j, -1*(frustY-frustYlower*elFactor)+(elFactor*interpEL), (-1*(rows*cellsize/2))-i*cellsize);
+   			   		j++;
+
+   		   		}
+   			   //glVertex3f((-1*(cols*cellsize/2))+j*cellsize, -1*(frustY-frustYlower*elFactor*0.5)+(elFactor*getData(j,i)), (-1*(rows*cellsize/2))-i*cellsize);
+   			   
+   			   //glFlush();
+   			   // i++;
+   		   }
+   		glEnd();
+   		glFlush();
+   		i++;
+   }
    cout << "Displaying Piece-wise Quadratic Spline (C_1)" << endl;
 
 }
