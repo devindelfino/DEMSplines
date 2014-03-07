@@ -11,61 +11,48 @@ float frustYlower = 0.0;
 float frustYupper = 0.0;
 float frustYmid;
 float frustPROJ;
-//float xEye = frustX/2.0;
-float xEye = 1.0;
-float yEye;
-//float zEye = frustZ/2.0;
+float xEye = 0.0;
+float yEye = 0.0;
+
 float ratio;
-float zEye;
+float zEye = 10.0;
 float elFactor = 1.0;
 float xToORIG = 0.0;
 float yToORIG;
-//float zToORIG = 0.0;
 float zToORIG;;
 float yRot = 0.0;
 float xRot = 0.0;
-float zoom = 1.0;
+float zoom = 0.0;
 bool displayKnots = true;
 bool displayC0 = false;
 bool displayC1 = false;
-bool zoomIn = false;
-bool zoomOut = false;
+
 //prototypes
 void menuOptions(int);
 void printTitle();
-void setPerspective();
 
 void display()
 {
 
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  cout << xEye << " " << yEye << " " <<zEye << endl;
-   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+  gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
    if(displayC0)
    {
       glColor3f (1, 0.871, 0);
-      d.displaySplineC0(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
+      d.displaySplineC0(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor, zoom);
    }
    else if(displayC1)
    {
       glColor3f(0.196, 0.804, 0.196);
-      d.displaySplineC1(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
+      d.displaySplineC1(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor, zoom);
    }
    else
    {
       glColor3f(0.196, 0.804, 0.6);
-      d.displayKnots(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
+      d.displayKnots(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor, zoom);
    }
 
-   // if(zoomIn)
-   // {
-   //    glTranslatef(0.0,0.0,0.5);
-   // }
-   // else if(zoomOut)
-   // {
-   //  glTranslatef(0.0,0.0,0-0.5);
-   // }
    glutSwapBuffers();
 }
 
@@ -74,11 +61,11 @@ void init(string newGRD)
   //read in .grd, assign globals
 	d.readIn(newGRD);
   d.getLimits(frustYlower,frustYupper);
-  cout << frustYupper << "HERE"<< endl;
   CELL = d.getCellSize();
   frustX = d.getCols()*CELL;
   frustZ = d.getRows()*CELL;
   zEye = frustZ/CELL/2*CELL;
+  //zEye = frustZ;
   frustYmid = (frustYupper+frustYlower)/2.0;
   yEye = frustYmid;
   yToORIG = -1*(frustYmid);
@@ -116,18 +103,16 @@ void resizeWindow(int w, int h)
    glMatrixMode (GL_PROJECTION);
 
    // ratio of width/height
-   setPerspective();
+
+  gluPerspective(85.0, ratio, 0.1f, frustPROJ*2);
+   //glFrustum(0-(frustX/2), frustX/2, 0-(frustYmid), (frustYmid), 0-(frustZ/2.0), frustZ/2.0);
+
+   //glFrustum(0-(frustX/2), frustX/2, 0-(frustYupper-frustYlower)/2.0, (frustYupper-frustYlower)/2.0, 0.1f, d.getRows()*CELL);
    glMatrixMode (GL_MODELVIEW);
    
    /* reset matrices to user's coordinate system */
 }
 
-void setPerspective()
-{
-
-   gluPerspective(85.0, ratio*zoom, 0.1f, frustPROJ*2);
-
-}
 void initMenu()
 {
 	glutCreateMenu(menuOptions);
@@ -195,40 +180,17 @@ void keyboardInput(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
-		case '1': 	
-		//add in limit to zoom in
-			 	  //yEye = ((yEye/(-1*zEye))*(zEye-5.0));
-          // yEye -= 10.0;
-          yEye *= 0.75;
-          zEye *= 0.75;
-          xEye *= 0.75;
-
-              zoomIn = true;
-              zoomOut = false;
-              zoom *= 0.9;
-              //frustPROJ += 10.0;
-          //     glMatrixMode (GL_PROJECTION);
-
-				      // setPerspective();
-          //     glMatrixMode(GL_MODELVIEW);
-          //     glLoadIdentity();
-              //glutDisplayFunc(display);
-              cout << zoom<<endl;
-              
-
-   			   glutPostRedisplay();
+		case '1':		 
+          zoom += 20.0;
+   			  glutPostRedisplay();
 				  break;
 		case '7': 
 		//add in limit to zoom out
-				  zEye += 0.5;
-          zoomIn = false;
-              zoomOut = true;
-              cout << "zoom out"<<endl;
-   				  glutPostRedisplay();
+				  zoom -= 20.0;
+          
+   				glutPostRedisplay();
 				  break;
 		case '8': 
-
-
 				  xRot -= 2.0;
    				  glutPostRedisplay();
 				  break;
@@ -305,6 +267,7 @@ int main(int argc, char **argv)
    initMenu();
    glutKeyboardFunc(keyboardInput);   // the default keyboard function of the openGL program
    glutDisplayFunc(display);        // the default display function of the openGL program
+   //glutIdleFunc(display);        // the default display function of the openGL program
    glutReshapeFunc(resizeWindow);     // the default reshape function of the openGL program
    glutMainLoop(); 
    return 0;  
