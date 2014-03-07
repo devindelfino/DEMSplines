@@ -12,8 +12,8 @@ float frustYupper = 0.0;
 float frustYmid;
 float frustPROJ;
 //float xEye = frustX/2.0;
-float xEye = 0.0;
-float yEye = 0.0;
+float xEye = 1.0;
+float yEye;
 //float zEye = frustZ/2.0;
 float ratio;
 float zEye;
@@ -28,7 +28,8 @@ float zoom = 1.0;
 bool displayKnots = true;
 bool displayC0 = false;
 bool displayC1 = false;
-
+bool zoomIn = false;
+bool zoomOut = false;
 //prototypes
 void menuOptions(int);
 void printTitle();
@@ -36,10 +37,10 @@ void setPerspective();
 
 void display()
 {
+
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   
-   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
-   glLoadIdentity ();
+  cout << xEye << " " << yEye << " " <<zEye << endl;
+   gluLookAt (xEye, yEye, zEye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
    if(displayC0)
    {
@@ -48,7 +49,7 @@ void display()
    }
    else if(displayC1)
    {
-      glColor3f(0, 0.059, 1);
+      glColor3f(0.196, 0.804, 0.196);
       d.displaySplineC1(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
    else
@@ -57,6 +58,14 @@ void display()
       d.displayKnots(xRot, yRot, frustX, frustZ, frustYlower, frustYupper, yToORIG, zToORIG, elFactor);
    }
 
+   // if(zoomIn)
+   // {
+   //    glTranslatef(0.0,0.0,0.5);
+   // }
+   // else if(zoomOut)
+   // {
+   //  glTranslatef(0.0,0.0,0-0.5);
+   // }
    glutSwapBuffers();
 }
 
@@ -64,10 +73,14 @@ void init(string newGRD)
 {
   //read in .grd, assign globals
 	d.readIn(newGRD);
+  d.getLimits(frustYlower,frustYupper);
+  cout << frustYupper << "HERE"<< endl;
   CELL = d.getCellSize();
   frustX = d.getCols()*CELL;
   frustZ = d.getRows()*CELL;
-  float zEye = frustZ/CELL/2*CELL;
+  zEye = frustZ/CELL/2*CELL;
+  frustYmid = (frustYupper+frustYlower)/2.0;
+  yEye = frustYmid;
   yToORIG = -1*(frustYmid);
   zToORIG = frustZ;
 
@@ -77,11 +90,7 @@ void init(string newGRD)
     glShadeModel (GL_FLAT);
 
     // GET LOWER/UPPER bounds for FRUSTUM Y
-    d.getLimits(frustYlower,frustYupper);
-    cout << frustYlower << endl;
-    cout << frustYupper << endl;
-    //yEye = frustYupper+CELL;
-    frustYmid = (frustYupper+frustYlower)/2.0;
+
     glEnable (GL_DEPTH_TEST);
     glLoadIdentity ();
     //d.print();
@@ -104,18 +113,19 @@ void resizeWindow(int w, int h)
    }
    ratio = (w*1.0)/(h*1.0);
 
+   glMatrixMode (GL_PROJECTION);
+
    // ratio of width/height
    setPerspective();
+   glMatrixMode (GL_MODELVIEW);
    
    /* reset matrices to user's coordinate system */
 }
 
 void setPerspective()
 {
-   glMatrixMode (GL_PROJECTION);
 
-   gluPerspective(85.0, ratio, 0.1f, frustPROJ*2);
-   glMatrixMode (GL_MODELVIEW);
+   gluPerspective(85.0, ratio*zoom, 0.1f, frustPROJ*2);
 
 }
 void initMenu()
@@ -188,13 +198,22 @@ void keyboardInput(unsigned char key, int x, int y)
 		case '1': 	
 		//add in limit to zoom in
 			 	  //yEye = ((yEye/(-1*zEye))*(zEye-5.0));
-          yEye -= 10.0;
-          xEye -= 10.0;
+          // yEye -= 10.0;
+          yEye *= 0.75;
+          zEye *= 0.75;
+          xEye *= 0.75;
 
-          zoom += 0.1;
+              zoomIn = true;
+              zoomOut = false;
+              zoom *= 0.9;
               //frustPROJ += 10.0;
-				      //setPerspective();
-              cout << xEye<<endl;
+          //     glMatrixMode (GL_PROJECTION);
+
+				      // setPerspective();
+          //     glMatrixMode(GL_MODELVIEW);
+          //     glLoadIdentity();
+              //glutDisplayFunc(display);
+              cout << zoom<<endl;
               
 
    			   glutPostRedisplay();
@@ -202,6 +221,8 @@ void keyboardInput(unsigned char key, int x, int y)
 		case '7': 
 		//add in limit to zoom out
 				  zEye += 0.5;
+          zoomIn = false;
+              zoomOut = true;
               cout << "zoom out"<<endl;
    				  glutPostRedisplay();
 				  break;
@@ -240,6 +261,7 @@ void printTitle()
   cout << " To choose a DEM from the list of sample files, include the filename as an argument"<< endl;
   cout << " when running the executable.  i.e. ~$ ./DelfinoG3 mt257.dem.grd\n" << endl;
   cout << "     - mt257.dem.grd (default) " << endl;
+  cout << "     - test.grd" << endl;
   cout << "     - tucks.dem.grd\n\n" << endl;         
   cout << " Menu Options:\n"<< endl;
 	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0)" << endl;
