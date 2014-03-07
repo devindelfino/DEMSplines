@@ -167,6 +167,7 @@ void menuOptions(int choice)
         displayC1 = false;
         displayKnots = true;
         elFactor = 1.0;
+        zoom = 0.0;
         cout << "\n\nCurrent Elevation: x" << elFactor << endl;
         glutPostRedisplay();
         break;
@@ -226,8 +227,8 @@ void printTitle()
   cout << "     - test.grd" << endl;
   cout << "     - tucks.dem.grd\n\n" << endl;         
   cout << " Menu Options:\n"<< endl;
-	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0)" << endl;
-	cout << " 'Display Quadratic Spline'      - Displays a quadratic piecewise spline (C_1)" << endl;
+	cout << " 'Display Linear Spline'         - Displays a linear piecewise spline (C_0) in bright yellow" << endl;
+	cout << " 'Display Quadratic Spline'      - Displays a quadratic piecewise spline (C_1) in bright green" << endl;
 	cout << " 'Turn Splines Off'              - Clears the screen of all splines" << endl;
 	cout << " 'Increase Grid Elevations' (x2) - Increases Grid Elevation Points by a factor of 2" << endl;
 	cout << " 'Decrease Grid Elevations' (x2) - Decreases Grid Elevation Points by a factor of 2" << endl;
@@ -237,10 +238,10 @@ void printTitle()
 	cout << " Keyboard Instructions:\n"<< endl;
 	cout << " '1' - Zoom in" << endl;
 	cout << " '7' - Zoom out" << endl;
-	cout << " '8' - Rotate grid about the x-axis (Vertically, Counter-Clockwise)" << endl;
-	cout << " '2' - Rotate grid about the x-axis (Vertically, Clockwise)" << endl;
-	cout << " '4' - Rotate grid about the y-axis (Horizontally, Counter-Clockwise)" << endl;
-	cout << " '6' - Rotate grid about the y-axis (Horizontally, Clockwise)\n\n" << endl;
+	cout << " '8' - Rotate grid about the x-axis (Vertically, Clockwise)" << endl;
+	cout << " '2' - Rotate grid about the x-axis (Vertically, Counter-Clockwise)" << endl;
+	cout << " '4' - Rotate grid about the y-axis (Horizontally, Clockwise)" << endl;
+	cout << " '6' - Rotate grid about the y-axis (Horizontally, Counter-Clockwise)\n\n" << endl;
 }
 
 
