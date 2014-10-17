@@ -98,7 +98,7 @@ void resizeWindow(int w, int h)
       frustPROJ = frustZ;
    		
    }
-   ratio = (w*1.0)/(h*1.0);
+   float ratio = (w*1.0)/(h*1.0);
 
    glMatrixMode (GL_PROJECTION);
 
